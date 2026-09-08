@@ -12,31 +12,15 @@ public class StatementPrinter(Dictionary<string, Play> plays)
     {
         var totalAmount = 0;
         var volumeCredits = 0;
+
         var result = $"Statement for {invoice.Customer}\n";
         CultureInfo cultureInfo = new("en-US");
 
-        foreach(var perf in invoice.Performances) 
+        foreach(Performance perf in invoice.Performances) 
         {
             var play = _plays[perf.PlayID];
-            var thisAmount = 0;
-            switch (play.Type) 
-            {
-                case "tragedy":
-                    thisAmount = 40000;
-                    if (perf.Audience > 30) {
-                        thisAmount += 1000 * (perf.Audience - 30);
-                    }
-                    break;
-                case "comedy":
-                    thisAmount = 30000;
-                    if (perf.Audience > 20) {
-                        thisAmount += 10000 + 500 * (perf.Audience - 20);
-                    }
-                    thisAmount += 300 * perf.Audience;
-                    break;
-                default:
-                    throw new Exception("unknown type: " + play.Type);
-            }
+            var thisAmount = CalcAmount(perf);
+
             // add volume credits
             volumeCredits += Math.Max(perf.Audience - 30, 0);
             // add extra credit for every ten comedy attendees
@@ -49,5 +33,32 @@ public class StatementPrinter(Dictionary<string, Play> plays)
         result += $"Amount owed is {(totalAmount / 100m).ToString("C", cultureInfo)}\n";
         result += $"You earned {volumeCredits} credits\n";
         return result;
+    }
+
+    private int CalcAmount(Performance perf)
+    {
+        var play = _plays[perf.PlayID];
+        var Result = 0;
+        switch (play.Type)
+        {
+            case "tragedy":
+                Result = 40000;
+                if (perf.Audience > 30)
+                {
+                    Result += 1000 * (perf.Audience - 30);
+                }
+                break;
+            case "comedy":
+                Result = 30000;
+                if (perf.Audience > 20)
+                {
+                    Result += 10000 + 500 * (perf.Audience - 20);
+                }
+                Result += 300 * perf.Audience;
+                break;
+            default:
+                throw new Exception("unknown type: " + play.Type);
+        }
+        return Result;
     }
 }
